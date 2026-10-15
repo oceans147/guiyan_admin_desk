@@ -126,10 +126,14 @@ jobs:
         shell: pwsh
         run: |
           $exe = "${{ steps.iscc.outputs.exe }}"
-          $def = ""
-          if ("${{ steps.iscc.outputs.hasChinese }}" -eq "True") { $def = "/DCHINESE" }
-          # 相对 .iss 中的 ..\build\windows\x64\runner\Release 取产物
-          & $exe $def "installer\guiyan_admin_desk.iss"
+          # 用参数数组,避免把空字符串当选项传给 ISCC(那会报 Unknown option)
+          $isccArgs = @()
+          if ("${{ steps.iscc.outputs.hasChinese }}" -eq "True") {
+            $isccArgs += "/DCHINESE"
+          }
+          $isccArgs += "installer\guiyan_admin_desk.iss"
+          Write-Host "Running: $exe $($isccArgs -join ' ')"
+          & $exe @isccArgs
           if ($LASTEXITCODE -ne 0) { throw "ISCC compile failed ($LASTEXITCODE)" }
 
       - name: Upload Windows installer
