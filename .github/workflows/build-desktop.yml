@@ -31,7 +31,9 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
-            libgtk-3-dev liblzma-dev libstdc++-12-dev
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libmpv-dev mpv
+          # libmpv-dev 提供 mpv.pc,media_kit_video 的 CMake 靠 pkg-config 找到 PkgConfig::mpv
 
       - name: Build
         run: |
