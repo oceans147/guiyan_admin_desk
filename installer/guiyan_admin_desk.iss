@@ -19,12 +19,18 @@ OutputBaseFilename=guiyan_admin_desk-setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-ArchitecturesInstallIn64BitMode=x64compatible
+ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=lowest
 UninstallDisplayName={#MyAppName}
 
 [Languages]
+; CI(GitHub Windows runner)上 Inno Setup 默认不装中文语言包:
+; 定义了 CHINESE(ISCC /DCHINESE)时用中文,否则回退到内置英文,保证总能编译成功
+#ifdef CHINESE
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+#else
+Name: "default"; MessagesFile: "compiler:Default.isl"
+#endif
 
 [Tasks]
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "附加任务:"
