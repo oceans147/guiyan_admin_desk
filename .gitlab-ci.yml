@@ -1,0 +1,71 @@
+# 轨眼设备管理系统 - GitLab CI
+# 推送代码后在 GitLab 项目页 Build > Pipelines 查看构建,
+# 任务成功后在任务的 Jobs > Artifacts 里下载各平台包。
+#
+# runner 说明:
+# - gitlab.com 官方 SaaS 每月附 400 分钟免费 Linux runner 额度
+# - 自建 GitLab 需注册一个 docker executor 的 runner 才能跑本配置
+
+stages:
+  - build
+
+variables:
+  GIT_DEPTH: "1"
+
+# ── Linux x86_64 包 ──────────────────────────────────────────────
+# ghcr.io/cirruslabs/flutter:<版本> 已内含 Flutter SDK + GTK/ninja/clang
+# 等桌面构建依赖,runner 架构为 x86_64,产物即地道的 Linux x64 bundle
+build:linux:
+  stage: build
+  image: ghcr.io/cirruslabs/flutter:3.47.1
+  script:
+    - flutter pub get
+    - flutter build linux --release
+    # bundle 是运行整个程序所需的目录(exe + lib/,打成一个 tar.gz)
+    - tar -czf guiyan_admin_desk-linux-x64.tar.gz -C build/linux/x64/release bundle
+  artifacts:
+    name: "guiyan_admin_desk-linux"
+    paths:
+      - guiyan_admin_desk-linux-x64.tar.gz
+    expire_in: 4 weeks
+
+# ── Windows x64 包(需要自建 Windows docker executor runner)──────
+# gitlab.com 官方 SaaS 不提供 Windows runner;若用 GitHub/其它有
+# Windows runner 的实例,去掉 rules 即可启用
+build:windows:
+  stage: build
+  tags:
+    - windows
+  rules:
+    - when: manual   # 手动触发,避免没有 Windows runner 时阻塞流水线
+  script:
+    - flutter pub get
+    - flutter build windows --release
+    - pwsh -Command "Compress-Archive -Path 'build\windows\x64\runner\Release\*' -DestinationPath 'guiyan_admin_desk-windows-x64.zip' -Force"
+  artifacts:
+    name: "guiyan_admin_desk-windows"
+    paths:
+      - guiyan_admin_desk-windows-x64.zip
+    expire_in: 4 weeks
+
+# ── macOS 包(需要自建 macOS shell runner)───────────────────────
+# macOS 无法用 docker,需在 Mac 上注册 shell executor runner;
+# 产物是 .app,这里额外用 hdiutil 打成 dmg
+build:macos:
+  stage: build
+  tags:
+    - macos
+  rules:
+    - when: manual
+  script:
+    - flutter pub get
+    - flutter build macos --release
+    - rm -rf /tmp/dmg_stage && mkdir -p /tmp/dmg_stage
+    - cp -R build/macos/Build/Products/Release/guiyan_admin_desk.app /tmp/dmg_stage/
+    - ln -s /Applications /tmp/dmg_stage/Applications
+    - hdiutil create -volname "guiyan_admin_desk" -srcfolder /tmp/dmg_stage -ov -format UDZO guiyan_admin_desk-macos.dmg
+  artifacts:
+    name: "guiyan_admin_desk-macos"
+    paths:
+      - guiyan_admin_desk-macos.dmg
+    expire_in: 4 weeks
