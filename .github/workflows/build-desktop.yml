@@ -77,6 +77,7 @@ jobs:
           Version: 1.0.0
           Architecture: amd64
           Maintainer: 轨眼 <admin@taiqiuai.cn>
+          Depends: libmpv2, libgtk-3-0
           Description: 轨眼设备管理系统桌面客户端 (Flutter + mpv 播放 RTSP/RTMP)
           EOF
           dpkg-deb --build --root-owner-group "$STAGE" guiyan_admin_desk-linux-amd64.deb

@@ -115,6 +115,11 @@ class _TermViewState extends State<_TermView> {
       theme: TerminalThemes.whiteOnBlack,
       textStyle: const TerminalStyle(fontSize: 14, fontFamily: 'monospace'),
       autofocus: true,
+      // 桌面端(Windows/Linux/macOS)用物理键盘事件收输入:
+      // kterm 默认走 IME/TextInputConnection 通道(为移动端软键盘设计),
+      // 在 Windows/Linux 桌面下这条通道常收不到字符,导致终端无法输入。
+      // 置 true 后改用 Focus.onKeyEvent + requestFocus,桌面键盘才稳定。
+      hardwareKeyboardOnly: true,
       cursorType: TerminalCursorType.block,
     );
   }
